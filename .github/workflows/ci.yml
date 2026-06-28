@@ -1,5 +1,4 @@
-# Simple CI: install the package and smoke-test import + CLI across Python versions.
-# Add a `pytest` step once a tests/ suite exists.
+# Simple CI: install package, run pytest, and smoke-test the CLI across Python versions.
 name: CI
 
 on:
@@ -25,11 +24,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install package (dev extras)
-        run: pip install -e '.[dev]'
+      - name: Install package (dev + qr extras)
+        run: pip install -e '.[dev,qr]'
 
-      - name: Smoke test
+      - name: Run tests
+        run: pytest -q
+
+      - name: CLI smoke test
         run: |
-          python -c "import dropitx, dropitx.cli, dropitx.uploader, dropitx.config, dropitx.qr"
           dropitx --version
           dropitx --help
