@@ -1,5 +1,7 @@
 # DropItX CLI
 
+![CI](https://github.com/phuongddx/dropitx-cli/actions/workflows/ci.yml/badge.svg)
+
 Developer-friendly file sharing from the command line.
 
 ## Installation
@@ -211,4 +213,4 @@ pytest
 
 ## License
 
-MIT License
+MIT License - Copyright (c) 2026 DropItX

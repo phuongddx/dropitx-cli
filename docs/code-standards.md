@@ -260,7 +260,70 @@ def upload_file(file_path: str, password: Optional[str] = None, ...) -> UploadRe
 
 **Note:** Despite `pyproject.toml` saying `>= 3.8`, code uses PEP 585 generics (`list[UploadResult]`, `tuple[str, ...]`) → practical minimum is **3.9+**.
 
+## Testing Conventions
+
+### Framework & Structure
+- **pytest** is the test runner
+- Tests live in `tests/test_dropitx.py` (single file, 13 tests)
+- Network-free execution — no real API calls
+- Uses `monkeypatch` to isolate config (never touches `~/.dropitx`)
+
+### CLI Testing Pattern
+```python
+from click.testing import CliRunner
+
+def test_cli_help_exits_zero():
+    result = CliRunner().invoke(cli_mod.cli, ["--help"])
+    assert result.exit_code == 0
+    assert "DropItX" in result.output
+```
+
+### Config Isolation Pattern
+```python
+def _isolate_config(monkeypatch, tmp_path):
+    """Point config module at tmp dir so ~/.dropitx is never read."""
+    monkeypatch.setattr(config, "CONFIG_DIR", tmp_path)
+    monkeypatch.setattr(config, "CONFIG_FILE", tmp_path / "config.json")
+
+def test_api_url_env_overrides(monkeypatch):
+    monkeypatch.setenv("DROPITX_API_URL", "https://example.com/")
+    assert config.get_api_url() == "https://example.com"  # trailing slash stripped
+```
+
+### Optional Dependency Testing
+```python
+@pytest.mark.skipif(not qr.HAS_QRCODE, reason="qrcode[pil] not installed")
+def test_qr_ascii_when_lib_present():
+    assert isinstance(qr.generate_qr_ascii("https://example.com/x"), str)
+
+def test_qr_text_box_contains_url():
+    out = qr.generate_qr_text("https://example.com/x")
+    assert "https://example.com/x" in out
+```
+
+### Test Coverage Areas
+- Package version and module imports
+- CLI surface (help, version, subcommands)
+- Dataclass field mapping (camelCase → snake_case)
+- Config/env resolution precedence
+- QR generation (text fallback, ASCII, image)
+
+## CI / Commit Conventions
+
+### GitHub Actions CI
+- **File:** `.github/workflows/ci.yml`
+- **Matrix:** Python 3.9 + 3.12
+- **Steps:** Install `.[dev,qr]` → `pytest -q` → CLI smoke (`--version`, `--help`)
+- **Triggers:** Push to `main`, pull requests
+- **Status:** All tests pass on both versions
+
+### Commit Format
+- Conventional commits preferred (`feat:`, `fix:`, `docs:`, etc.)
+- No AI references in commit messages
+- Keep commits focused and atomic
+
 ---
 
 **Last Updated:** 2026-06-28  
-**Python Version:** 3.9+ (practical), 3.8+ (declared but incorrect)
+**Python Version:** 3.9+ (practical), 3.8+ (declared but incorrect)  
+**Test Runner:** pytest, 13 tests passing on CI

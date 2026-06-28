@@ -5,9 +5,11 @@
 DropItX CLI (`dropitx`) is a Python command-line client for the DropItX file-sharing service. It provides a terminal-native interface for uploading files, text content, and stdin pipes to DropItX with optional password protection, expiration, burn-after-reading, and QR code generation.
 
 **Stack:** Click (CLI), httpx (HTTP), rich (terminal output), optional qrcode[pil]  
-**License:** MIT  
-**Repository:** https://github.com/phuongddx/dropitx-cli  
-**Version:** 1.0.0 (2026-06-28)
+**License:** MIT (Copyright 2026 DropItX)  
+**Repository:** https://github.com/phuongddx/dropitx-cli (public)  
+**Homepage:** https://dropitx.site  
+**Version:** 1.0.0 (2026-06-28)  
+**Tests:** 13 tests, all passing on CI (Python 3.9 + 3.12)
 
 ## Target Users
 
@@ -78,6 +80,8 @@ DropItX CLI (`dropitx`) is a Python command-line client for the DropItX file-sha
 - **UX:** Pipe flow works (`echo hi | dropitx`)
 - **QR:** ASCII QR always works; image QR degrades gracefully
 - **Config:** Precedence respected (env > file > default)
+- **Tests:** 13 network-free tests cover CLI surface, config resolution, field mapping, QR
+- **CI:** All tests passing on Python 3.9 and 3.12
 
 ## Known Issues & Gaps
 
@@ -85,14 +89,10 @@ DropItX CLI (`dropitx`) is a Python command-line client for the DropItX file-sha
 - **Issue:** `pyproject.toml` declares `>= 3.8` but code uses PEP 585 generics (`list[UploadResult]`, `tuple[str, ...]`) → practical minimum is **3.9+**
 - **Fix:** One-line change to `requires-python = ">=3.9"`
 
-### Missing Tests
-- README mentions `pytest` and dev extra includes pytest/pytest-cov
-- **No test files exist in repo** (opportunity for unit/integration tests)
-
-### No CI/Release Automation
-- No GitHub Actions workflows
-- No automated PyPI publishing
-- Manual release process today
+### No PyPI Release Automation
+- CI exists (tests run on push/PR), but no PyPI publish workflow
+- Publishing is manual via `twine upload dist/*`
+- Opportunity: Add `.github/workflows/release.yml` triggered on tags
 
 ### Missing Features (Proposed)
 - No progress indication for large file uploads
@@ -107,4 +107,4 @@ README documents key prefixes `shk_` (personal) and `sht_` (team), but examples 
 ---
 
 **Last Updated:** 2026-06-28  
-**Status:** v1.0.0 production release
+**Status:** v1.0.0 production release, MIT-licensed, tested (13 tests, CI-green), public on GitHub

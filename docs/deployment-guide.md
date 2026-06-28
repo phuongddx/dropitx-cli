@@ -4,7 +4,7 @@
 
 This guide covers building, testing, and publishing the DropItX CLI package to PyPI. The project uses standard Python packaging with setuptools.
 
-**Current Status:** No release automation exists. All steps below are manual.
+**Current Status:** CI exists (tests run on push/PR), but PyPI publishing is manual. No release automation.
 
 ## Prerequisites
 
@@ -13,12 +13,19 @@ This guide covers building, testing, and publishing the DropItX CLI package to P
 - PyPI account and API token (for publishing)
 - git (for versioning)
 
+## Repository
+
+- **Public repo:** https://github.com/phuongddx/dropitx-cli
+- **License:** MIT (Copyright 2026 DropItX)
+- **Clone:** `git clone https://github.com/phuongddx/dropitx-cli.git`
+- **SSH:** `git@github.com-phuongddx:phuongddx/dropitx-cli.git` (via host alias)
+
 ## Local Development Setup
 
 ### Clone & Install
 
 ```bash
-# Clone repository
+# Clone repository (HTTPS or SSH)
 git clone https://github.com/phuongddx/dropitx-cli.git
 cd dropitx-cli
 
@@ -160,7 +167,7 @@ twine upload dist/*
 
 ## Automated Release (Proposed)
 
-**Current State:** No GitHub Actions workflow exists. Below is proposed automation.
+**Current State:** CI exists (tests only). No PyPI publish workflow. Publishing is manual.
 
 ### Proposed Workflow: `.github/workflows/release.yml`
 
@@ -225,18 +232,35 @@ dropitx config show
 dropitx config set-url https://api.example.com
 ```
 
-### Run Test Suite (When Tests Exist)
+### Run Test Suite
 
 ```bash
 # Install dev dependencies
 pip install -e '.[dev]'
 
-# Run tests
+# Run tests (13 tests, network-free)
 pytest
 
 # Run with coverage
 pytest --cov=dropitx --cov-report=term-missing
 ```
+
+**Test coverage:**
+- Package version and module imports
+- CLI surface (help, version, subcommands)
+- `UploadResult` field mapping (camelCase → snake_case)
+- Config/env resolution precedence
+- QR generation (with optional dep guards)
+
+### CI Status
+
+Tests run automatically on:
+- Push to `main` branch
+- Pull requests
+
+**Matrix:** Python 3.9 + 3.12  
+**Status:** All 13 tests passing on both versions  
+**Workflow:** `.github/workflows/ci.yml`
 
 ## Environment Variables for Deployment
 
@@ -338,4 +362,4 @@ If a bad release is published:
 ---
 
 **Last Updated:** 2026-06-28  
-**Automation Status:** Manual only (no GitHub Actions)
+**Automation Status:** CI exists (tests green on 3.9+3.12); PyPI publishing is manual

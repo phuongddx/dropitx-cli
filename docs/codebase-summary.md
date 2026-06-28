@@ -10,13 +10,19 @@ dropitx-cli/
 │   ├── uploader.py         (172 LOC - httpx upload logic)
 │   ├── config.py           (74 LOC - config/env resolution)
 │   └── qr.py               (71 LOC - optional QR generation)
+├── tests/
+│   └── test_dropitx.py     (136 LOC - 13 tests, network-free)
+├── .github/workflows/
+│   └── ci.yml              (37 LOC - Python 3.9+3.12 matrix, pytest, CLI smoke)
 ├── pyproject.toml          (49 LOC - deps, scripts)
-├── README.md               (211 LOC - usage docs)
-└── tests/                  (empty - no tests yet)
+├── README.md               (214 LOC - usage docs)
+├── LICENSE                 (21 LOC - MIT, Copyright 2026 DropItX)
+└── .gitignore              (excludes __pycache__, *.egg-info, .venv, .pytest_cache)
 ```
 
-**Total Python LOC:** ~659  
-**Entry Point:** `dropitx = "dropitx.cli:cli"` (console script)
+**Total Python LOC:** ~795 (including tests)  
+**Entry Point:** `dropitx = "dropitx.cli:cli"` (console script)  
+**Repository:** https://github.com/phuongddx/dropitx-cli (public, MIT)
 
 ## File Responsibilities
 
@@ -52,6 +58,22 @@ dropitx-cli/
 - **`generate_qr_image()`** - returns False on missing dep, doesn't raise
 - **Params:** ASCII uses ERROR_CORRECT_L, image uses ERROR_CORRECT_M
 
+### `tests/test_dropitx.py` (136 LOC) - Test Suite
+- **13 network-free tests** covering:
+  - Package version and module imports
+  - CLI surface (`--help`, `--version`, subcommands via `CliRunner`)
+  - `UploadResult` field mapping (including `deleteToken`→`delete_token` camelCase + defaults)
+  - Config/env resolution precedence (env > file > default)
+  - QR text/ascii/image generation with `skipif(not HAS_QRCODE)`
+- **Isolation:** Uses `monkeypatch` to redirect config to tmp paths (never reads real `~/.dropitx`)
+- **Runner:** pytest with network-free execution
+
+### `.github/workflows/ci.yml` (37 LOC) - CI Pipeline
+- **Matrix:** Python 3.9 + 3.12
+- **Steps:** Install `.[dev,qr]` → `pytest -q` → CLI smoke (`--version`, `--help`)
+- **Triggers:** Push to `main`, pull requests
+- **Status:** Green on both Python versions
+
 ## How They Connect
 
 ### Command Flow
@@ -64,6 +86,30 @@ cli() (Click group)
 ├── text command → upload_text() → print_upload_result()
 ├── config command → config.py functions
 └── qr command → qr.py functions
+```
+
+### Test Coverage
+```
+pytest runs tests/test_dropitx.py
+├── Version/import checks → dropitx.__version__, module attributes
+├── CLI surface → CliRunner invokes --help, --version, subcommands
+├── UploadResult mapping → Server deleteToken → client delete_token
+├── Config resolution → monkeypatch isolates env/file/default precedence
+└── QR generation → skipif guards when qrcode[pil] missing
+```
+
+### CI Pipeline
+```
+GitHub Actions (.github/workflows/ci.yml)
+├── Push to main or PR
+├── Matrix: Python 3.9, 3.12
+├── Steps:
+│   ├── checkout@v4
+│   ├── setup-python@v5
+│   ├── pip install -e '.[dev,qr]'
+│   ├── pytest -q (13 tests)
+│   └── CLI smoke (--version, --help)
+└── Result: Green check on all versions
 ```
 
 ### Config Resolution
@@ -156,8 +202,10 @@ Pipe → bare dropitx → upload_stdin()
 |------|-----|---------|
 | cli.py | 339 | CLI commands, options, output rendering |
 | uploader.py | 172 | HTTP upload logic, API client |
+| test_dropitx.py | 136 | Test suite (13 tests, network-free) |
 | config.py | 74 | Config file and env resolution |
 | qr.py | 71 | QR code generation (optional) |
+| ci.yml | 37 | CI pipeline (Python 3.9+3.12 matrix) |
 | __init__.py | 3 | Version export |
 
 **Note:** `cli.py` is the only file exceeding 200 LOC. If more commands are added, consider splitting into command modules (e.g., `upload_cmd.py`, `config_cmd.py`).
@@ -165,4 +213,5 @@ Pipe → bare dropitx → upload_stdin()
 ---
 
 **Last Updated:** 2026-06-28  
-**Total Python LOC:** ~659
+**Total Python LOC:** ~795 (including tests)  
+**Repository:** https://github.com/phuongddx/dropitx-cli (public, MIT)

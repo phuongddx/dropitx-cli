@@ -9,20 +9,43 @@
 - ASCII QR code generation
 - Optional image QR with `dropitx[qr]` extra
 - Config management (API key, URL) with env override
+- **Test suite** (13 tests, network-free, covers CLI surface, config resolution, UploadResult mapping, QR generation)
+- **CI pipeline** (GitHub Actions, Python 3.9 + 3.12 matrix, all tests passing)
+- **Public repository** (`https://github.com/phuongddx/dropitx-cli`, MIT-licensed)
 
 **Known Gaps:**
-- No automated tests (pytest mentioned but no test files)
-- No CI/CD pipeline
-- No release automation
 - Python version mismatch (declares 3.8+, requires 3.9+)
+- No PyPI publish automation (CI tests only, no release workflow)
 - No progress indication for large file uploads
 - No client-side validation for slug length/expires format
 - No chunked/resumable upload support
 - No retry logic on network failures
 
+## Completed (2026-06-28)
+
+### Phase 1: Foundation & Reliability
+
+**1.2 Add Test Suite** ✅ COMPLETED
+- Created `tests/test_dropitx.py` (136 LOC, 13 tests)
+- Unit tests for:
+  - Package version and module imports
+  - CLI surface (help, version, subcommands via CliRunner)
+  - `UploadResult` field mapping including `deleteToken`→`delete_token` camelCase + defaults
+  - Config/env resolution precedence (env > file > default)
+  - QR text/ascii/image generation with `skipif(not HAS_QRCODE)`
+- Network-free, uses `monkeypatch` to isolate config (never touches real `~/.dropitx`)
+- **Status:** All 13 tests passing
+
+**1.3 Add CI Pipeline** ✅ COMPLETED
+- GitHub Actions workflow `.github/workflows/ci.yml`
+- Matrix: Python 3.9 + 3.12
+- Steps: `pip install -e '.[dev,qr]'` → `pytest -q` → CLI smoke (`--version`, `--help`)
+- Triggers: push to `main`, pull requests
+- **Status:** Green on both Python 3.9 and 3.12
+
 ## Proposed Roadmap
 
-### Phase 1: Foundation & Reliability (Proposed)
+### Phase 1: Foundation & Reliability (Continued)
 
 **Priority: HIGH**
 
@@ -31,25 +54,6 @@
 - Update classifiers to remove Python 3.8
 - **Why:** Code uses PEP 585 generics (`list[UploadResult]`, `tuple[str, ...]`) which require 3.9+
 - **Effort:** 5 minutes (one-line change)
-
-**1.2 Add Test Suite**
-- Create `tests/` directory with pytest structure
-- Unit tests for:
-  - `config.py`: env precedence, file loading, masking
-  - `uploader.py`: API client, form building, response mapping
-  - `qr.py`: fallback behavior, HAS_QRCODE handling
-- Integration tests:
-  - CLI invocation patterns (upload, text, pipe)
-  - Error handling paths
-- **Effort:** 2-3 days
-- **Acceptance:** >80% coverage, tests pass on CI
-
-**1.3 Add CI Pipeline**
-- GitHub Actions workflow: test on Python 3.9, 3.10, 3.11, 3.12
-- Run pytest with coverage
-- Lint with ruff or black
-- **Effort:** 1 day
-- **Acceptance:** PR checks pass, all tests green
 
 **1.4 Add Release Automation**
 - GitHub Actions workflow for PyPI publishing
@@ -200,4 +204,4 @@
 ---
 
 **Last Updated:** 2026-06-28  
-**Roadmap Status:** Proposed, not committed
+**Roadmap Status:** Phase 1.2 (tests) and 1.3 (CI) completed; remaining items proposed

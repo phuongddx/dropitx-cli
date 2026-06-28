@@ -322,13 +322,36 @@ password = click.prompt("Password", hide_input=True, confirmation_prompt=True)
 - **Config file:** `~/.dropitx/config.json` (persistent)
 - **Env vars:** Session-scoped, highest precedence
 - **No runtime state:** Each invocation is independent
+- **Test isolation:** Tests use `monkeypatch` to redirect config to tmp paths
 
 ### Server-Side State
 - **File storage:** Managed by DropItX API
 - **Metadata:** Expiration, burn flag, password (stored server-side)
 - **Delete tokens:** Returned by API, not stored by CLI
 
+## CI Pipeline
+
+### GitHub Actions Workflow
+```mermaid
+graph LR
+    A[Push to main / PR] --> B[checkout@v4]
+    B --> C[setup-python 3.9 / 3.12]
+    C --> D[pip install -e .[dev,qr]]
+    D --> E[pytest -q]
+    E --> F[CLI smoke test]
+    F --> G{All pass?}
+    G -->|Yes| H[Green check]
+    G -->|No| I[Red X]
+```
+
+**Workflow:** `.github/workflows/ci.yml`  
+**Matrix:** Python 3.9 + 3.12  
+**Status:** Green on both versions  
+**Test Count:** 13 tests, network-free
+
 ---
 
 **Last Updated:** 2026-06-28  
-**Architecture Style:** Stateless HTTP client with terminal UX
+**Architecture Style:** Stateless HTTP client with terminal UX  
+**Repository:** https://github.com/phuongddx/dropitx-cli (public, MIT)  
+**CI Status:** All 13 tests passing on Python 3.9 and 3.12
